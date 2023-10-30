@@ -50,7 +50,9 @@ class WineSearcher extends DuskTestCase
 
                         Wine::updateNewName($id,$wineName);
 
-                        $browser->keys('#Xwinename', ['{ctrl}', 'a']);
+                        $browser->keys('#Xwinename',  ['{CONTROL}', 'a']);
+
+                        $browser->keys('#Xwinename', ['{delete}']);
 
                         $browser->pause(10000);
 
