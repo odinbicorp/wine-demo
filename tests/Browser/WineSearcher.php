@@ -37,12 +37,26 @@ class WineSearcher extends DuskTestCase
 
                         $browser->elements('.tt-suggestion')[0]->click();
 
+                        $browser->pause(3000);
+
+                        $captChar = $browser->elements('.px-captcha-message');
+
+                        if ($captChar){
+                            dump("Ok");
+                        }
+
                         $wineName  = $browser->waitFor('.product-details__container-right',60)
                             ->text('.product-details__container-right > li > h1');
 
                         Wine::updateNewName($id,$wineName);
 
-                        $browser->clear('Xwinename');
+                        $browser->keys('#Xwinename', ['{ctrl}', 'a']);
+
+                        $browser->pause(10000);
+
+                        //$browser->clear('Xwinename');
+
+                        dump("cleaned");
 
                         $browser->pause(1200);
 
