@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Log;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
 use App\Models\Wine;
+use  App\Models\Review;
+use Illuminate\Support\Str;
 
 class WineSearcher extends DuskTestCase
 {
@@ -19,7 +21,8 @@ class WineSearcher extends DuskTestCase
      * @return string
      */
 
-    private function extractElementInfo(Browser $browser, $selector) {
+    private function extractElementInfo(Browser $browser, $selector)
+    {
 
         $elmText = '';
 
@@ -30,7 +33,8 @@ class WineSearcher extends DuskTestCase
         return $elmText;
     }
 
-    private function getTextFromElements($browser, $selector, $index) {
+    private function getTextFromElements($browser, $selector, $index)
+    {
 
         $elements = $browser->elements($selector);
 
@@ -41,148 +45,301 @@ class WineSearcher extends DuskTestCase
         return '';
     }
 
-    public function testExample(): void
+    function getSiblingTextByDtContent($browser, $contentToFind)
+    {
+        $script = <<<JS
+           var dtElements = document.querySelectorAll('.small.text-muted');
+           var foundValue = '';
+           for (var i = 0; i < dtElements.length; i++) {
+               if (dtElements[i].textContent === $contentToFind) {
+                   var siblingDiv = dtElements[i].nextElementSibling.querySelector('.text-more-line.js-content');
+                   if (siblingDiv) {
+                       foundValue = siblingDiv.textContent;
+                       break;
+                   }
+               }
+           }
+           return foundValue;
+       JS;
+
+        return $browser->driver->executeScript($script);
+    }
+
+    private function handleFirstMc()
     {
         $wines = Wine::getEmptyNewName();
 
-        $this->browse(function (Browser $browser) use ($wines){
+        $this->browse(function (Browser $browser) use ($wines) {
 
-            if ($wines->count() > 0){
+            if ($wines->count() > 0) {
 
                 $browser->visit('https://www.wine-searcher.com/');
 
-                foreach ($wines as $index => $wine){
+                foreach ($wines as $index => $wine) {
                     try {
 
                         $id = $wine->id;
                         $originName = $wine->origin_name;
 
-                        if ($index < 3){
+                        if ($index < 3) {
 
-                            dump("Origin name: ".$originName);
+                            dump("Origin name: " . $originName);
 
                             $captChar = $browser->elements('.px-captcha-message');
 
                             //$cokieName = $browser->driver->manage()->getCookies();
                             //dump($cokieName);
 
-                            if ($captChar){
+                            if ($captChar) {
                                 dump("Ok");
                                 $browser->visit('https://www.wine-searcher.com/');
                                 //$browser->refresh();
                                 $browser->driver->manage()->deleteAllCookies();
                             }
 
-                            $browser->keys('#Xwinename',  ['{CONTROL}', 'a']);
+                            $browser->keys('#Xwinename', ['{CONTROL}', 'a']);
 
                             $browser->keys('#Xwinename', ['{delete}']);
 
-                            $browser->waitFor('[name="Xwinename"]',60)->typeSlowly('Xwinename', 'Varvaglione 12 e Mezzo Primitivo del Salento IGP',1)
-                                ->waitFor('.tt-suggestion',60)
+                            $browser->waitFor('[name="Xwinename"]', 60)->typeSlowly('Xwinename', $originName, 1)
+                                ->waitFor('.tt-suggestion', 60)
                                 ->pause(1000);
 
                             $browser->elements('.tt-suggestion')[0]->click();
 
-                            $browser->waitFor('#find-tab-info',10)->click('#find-tab-info');
+                            $browser->waitFor('#find-tab-info', 10)->click('#find-tab-info');
                             $browser->pause(1000);
 
-                            $wineName  = $browser->waitFor('.product-details__container-right',60)
+                            $scriptAlcoholValue = <<<JS
+                                var dtElements = document.querySelectorAll('.small.text-muted');
+                                var alcoholValue = '';
+
+                                for (var i = 0; i < dtElements.length; i++) {
+                                    if (dtElements[i].textContent === 'Alcohol ABV') {
+                                        var siblingDiv = dtElements[i].nextElementSibling.querySelector('.text-more-line.js-content');
+                                        if (siblingDiv) {
+                                            alcoholValue = siblingDiv.textContent;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                return alcoholValue;
+                            JS;
+
+                            $scriptSweetness = <<<JS
+                                var dtElements = document.querySelectorAll('.small.text-muted');
+                                var alcoholValue = '';
+
+                                for (var i = 0; i < dtElements.length; i++) {
+                                    if (dtElements[i].textContent === 'Sweetness') {
+                                        var siblingDiv = dtElements[i].nextElementSibling.querySelector('.text-more-line.js-content');
+                                        if (siblingDiv) {
+                                            alcoholValue = siblingDiv.textContent;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                return alcoholValue;
+                            JS;
+
+                            $scriptBlend = <<<JS
+                                var dtElements = document.querySelectorAll('.small.text-muted');
+                                var alcoholValue = '';
+
+                                for (var i = 0; i < dtElements.length; i++) {
+                                    if (dtElements[i].textContent === 'Blend') {
+                                        var siblingDiv = dtElements[i].nextElementSibling.querySelector('.text-more-line.js-content');
+                                        if (siblingDiv) {
+                                            alcoholValue = siblingDiv.textContent;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                return alcoholValue;
+                            JS;
+
+                            $scriptMaturation = <<<JS
+                                var dtElements = document.querySelectorAll('.small.text-muted');
+                                var alcoholValue = '';
+
+                                for (var i = 0; i < dtElements.length; i++) {
+                                    if (dtElements[i].textContent === 'Maturation') {
+                                        var siblingDiv = dtElements[i].nextElementSibling.querySelector('.text-more-line.js-content');
+                                        if (siblingDiv) {
+                                            alcoholValue = siblingDiv.textContent;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                return alcoholValue;
+                            JS;
+
+                            $scriptOakType = <<<JS
+                                var dtElements = document.querySelectorAll('.small.text-muted');
+                                var alcoholValue = '';
+
+                                for (var i = 0; i < dtElements.length; i++) {
+                                    if (dtElements[i].textContent === 'Oak Type') {
+                                        var siblingDiv = dtElements[i].nextElementSibling.querySelector('.text-more-line.js-content');
+                                        if (siblingDiv) {
+                                            alcoholValue = siblingDiv.textContent;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                return alcoholValue;
+                            JS;
+
+                            $scriptClosureType = <<<JS
+                                var dtElements = document.querySelectorAll('.small.text-muted');
+                                var alcoholValue = '';
+
+                                for (var i = 0; i < dtElements.length; i++) {
+                                    if (dtElements[i].textContent === 'Closure Type') {
+                                        var siblingDiv = dtElements[i].nextElementSibling.querySelector('.text-more-line.js-content');
+                                        if (siblingDiv) {
+                                            alcoholValue = siblingDiv.textContent;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                return alcoholValue;
+                            JS;
+
+                            $scriptVineyardNotes = <<<JS
+                                var dtElements = document.querySelectorAll('.small.text-muted');
+                                var alcoholValue = '';
+
+                                for (var i = 0; i < dtElements.length; i++) {
+                                    if (dtElements[i].textContent === 'Vineyard Notes') {
+                                        var siblingDiv = dtElements[i].nextElementSibling.querySelector('.text-truncate-more-line.js-content');
+                                        if (siblingDiv) {
+                                            alcoholValue = siblingDiv.textContent;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                return alcoholValue;
+                            JS;
+
+                            $scriptWinemaking = <<<JS
+                                var dtElements = document.querySelectorAll('.small.text-muted');
+                                var alcoholValue = '';
+
+                                for (var i = 0; i < dtElements.length; i++) {
+                                    if (dtElements[i].textContent === 'Winemaking') {
+                                        var siblingDiv = dtElements[i].nextElementSibling.querySelector('.text-truncate-more-line.js-content');
+                                        if (siblingDiv) {
+                                            alcoholValue = siblingDiv.textContent;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                return alcoholValue;
+                            JS;
+
+                            $scriptAgeing = <<<JS
+                                var dtElements = document.querySelectorAll('.small.text-muted');
+                                var alcoholValue = '';
+
+                                for (var i = 0; i < dtElements.length; i++) {
+                                    if (dtElements[i].textContent === 'Ageing') {
+                                        var siblingDiv = dtElements[i].nextElementSibling.querySelector('.text-truncate-more-line.js-content');
+                                        if (siblingDiv) {
+                                            alcoholValue = siblingDiv.textContent;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                return alcoholValue;
+                            JS;
+
+                            $wineName = $browser->waitFor('.product-details__container-right', 60)
                                 ->text('.product-details__container-right > li > h1');
                             $region = $this->extractElementInfo($browser, '.product-details__region-name > span');
                             $type = $this->extractElementInfo($browser, '.product-details__styles > span');
                             $rating = $this->extractElementInfo($browser, '.ml-2A > span');
                             $score = $this->extractElementInfo($browser, '.product-details__score > span');
-                            $sweetness = $this->extractElementInfo($browser, '.text-more-line');
+
                             $content = $this->extractElementInfo($browser, '.product-details__description > p');
-                            $contentDetail = $this->extractElementInfo($browser, '.productDesc');
+                            $contentDetail = '';
+                            $contentDetailElm = $browser->elements('.js-show-hide.d-block.text-decoration-none.btn-link-primary.smaller.pl-1A.collapsed.cursor-pointer');
 
-                            if (count($browser->elements('.productDesc')) > 0) {
-                                dump("YES");
-                                dump($browser->elements('.productDesc')[0]->getText());
-
-                            }else{
-                                dump("NO");
+                            if ($contentDetailElm) {
+                                $browser->click('.js-show-hide.d-block.text-decoration-none.btn-link-primary.smaller.pl-1A.collapsed.cursor-pointer');
+                                $contentDetail = $browser->text('.product-details__description .productDesc');
                             }
 
-                            $blend = $this->getTextFromElements($browser, '.text-more-line', 1);
-                            $maturation = $this->getTextFromElements($browser, '.text-more-line', 2);
-                            $oakType = $this->getTextFromElements($browser, '.text-more-line', 3);
-                            $closureType = $this->getTextFromElements($browser, '.text-more-line', 4);
-                            $vineyardNotes = $this->getTextFromElements($browser, '.text-truncate-more-line', 0);
-                            $wineMaking = $this->getTextFromElements($browser, '.text-truncate-more-line', 1);
-                            $ageing = $this->getTextFromElements($browser, '.text-truncate-more-line', 2);
+                            $alcoholABV = $browser->driver->executeScript($scriptAlcoholValue);
+                            $blend = $browser->driver->executeScript($scriptBlend);
+                            $maturation = $browser->driver->executeScript($scriptMaturation);
+                            $oakType = $browser->driver->executeScript($scriptOakType);
+                            $closureType = $browser->driver->executeScript($scriptClosureType);
+                            $vineyardNotes = $browser->driver->executeScript($scriptVineyardNotes);
+                            $wineMaking = $browser->driver->executeScript($scriptWinemaking);
+                            $ageing = $browser->driver->executeScript($scriptAgeing);
+                            $sweetness = $browser->driver->executeScript($scriptSweetness);
 
-                            dump("Region: ". $region);
-                            dump("Type: ". $type);
-                            dump("Rating: ". $rating);
-                            dump("Score: ". $score);
-                            dump("Content: ". $content);
-                            dump("Content Detail: ". $contentDetail);
-                            dump("Weetness: ". $sweetness);
-                            dump("Blend: ". $blend);
-                            dump("Maturation: ". $maturation);
-                            dump("Oak Type: ". $oakType);
-                            dump("Closure Type: ". $closureType);
-                            dump("Note: ". $vineyardNotes);
-                            dump("Making: ". $wineMaking);
-                            dump("Ageing: ". $ageing);
-
-                            //$browser->pause(30000);
-
-                             Wine::updateNewAttr($id,$wineName,$region, $type, $rating, $score, $sweetness,
-                                $content,
+                            Wine::updateNewAttr($id, $wineName, $region, $type, $rating, $score, $sweetness, $content,
                                 $contentDetail, $blend, $maturation, $oakType, $closureType, $vineyardNotes,
-                                $wineMaking, $ageing);
+                                $wineMaking, $ageing, $alcoholABV);
 
-                            $browser->waitFor('#find-tab-reviews',10)->click('#find-tab-reviews');
-                            $browser->pause(1000);
+                            $browser->waitFor('#find-tab-reviews', 10)->click('#find-tab-reviews');
+                            $browser->pause(500);
 
                             $infoCardItems = $browser->elements('.text-primary.info-card__item-link-text.font-weight-bold');
 
                             if (count($infoCardItems) > 0) {
 
-                                dump("EXISTS");
+                                $moreCritics = $browser->elements('a[href="#moreCritics"]');
 
-                                $seeMoreElement = $browser->elements('.info-card__link-toggle.collapsed.d-block.text-center.btn-link-primary');
+                                if ($moreCritics) {
+                                    $browser->driver->executeScript("window.scrollTo(0, window.innerHeight );");
+                                    $browser->pause(1000);
+                                    $browser->click('a[href="#moreCritics"] .show-more');
 
-                                if ($seeMoreElement){
-                                    dump("Count: ".count($seeMoreElement));
-                                    $seeMoreElement[2]->click();
                                 }
 
-                                foreach ($infoCardItems as $index => $infoCardItem){
+                                foreach ($infoCardItems as $index => $infoCardItem) {
+                                    $user = $this->getTextFromElements($browser, '.text-primary.info-card__item-link-text.font-weight-bold', $index);
+                                    $ratingScore = $this->getTextFromElements($browser, '.btn.d-inline-flex.align-self-center.info-card__critic-score.mr-3', $index);
+                                    $ratingDate = $this->getTextFromElements($browser, '.text-muted.pr-3', $index);
+                                    $ratingContent = $this->getTextFromElements($browser, '.info-card__item .pt-2', $index);
 
-                                    $user = $this->getTextFromElements($browser, '.text-primary.info-card__item-link-text.font-weight-bold',$index);
-                                    $userRating = $this->getTextFromElements($browser,'.btn.d-inline-flex.align-self-center.info-card__critic-score.mr-3',$index);
+                                    $review = new Review();
+                                    $review->user = $user;
+                                    $review->content = $ratingContent;
+                                    $review->date = $ratingDate;
+                                    $review->score = $ratingScore;
+                                    $review->wine_id = $id;
+                                    $review->save();
 
-                                    dump( "User index: ".$index);
-                                    dump( $user);
-                                    dump( "Rating score: ".$userRating);
                                 }
 
-                            }else{
-                                dump("NOT EXISTS");
+
                             }
-
-
-                            //$ratingContent = $this->extractElementInfo($browser, '.text-muted .pr-3');
-
-
-                            $browser->pause(90000);
 
                             $browser->visit('https://www.wine-searcher.com/');
 
-
                             $browser->pause(1200);
 
-                            dump($wineName);
+                            dump("DONE: " . $id);
 
 
                         }
-                    }catch (\Exception $e){
+                    } catch (\Exception $e) {
                         Log::error($e->getMessage());
                         dump($e->getMessage());
-                        //Wine::updateNewAttr($id,"Error");
+                        Wine::updateLog($id, $e->getMessage());
                         continue;
                     }
                 }
@@ -190,4 +347,294 @@ class WineSearcher extends DuskTestCase
 
         });
     }
+
+    private function handleSecondtMc()
+    {
+        $wines = Wine::getEmptyNewNameMCSecond();
+
+        $this->browse(function (Browser $browser) use ($wines) {
+
+            if ($wines->count() > 0) {
+
+                $browser->visit('https://www.wine-searcher.com/');
+
+                foreach ($wines as $index => $wine) {
+                    try {
+
+                        $id = $wine->id;
+                        $originName = $wine->origin_name;
+
+                        if ($index < 3) {
+
+                            dump("Origin name: " . $originName);
+
+                            $captChar = $browser->elements('.px-captcha-message');
+
+                            //$cokieName = $browser->driver->manage()->getCookies();
+                            //dump($cokieName);
+
+                            if ($captChar) {
+                                dump("Ok");
+                                $browser->visit('https://www.wine-searcher.com/');
+                                //$browser->refresh();
+                                $browser->driver->manage()->deleteAllCookies();
+                            }
+
+                            $browser->keys('#Xwinename', ['{CONTROL}', 'a']);
+
+                            $browser->keys('#Xwinename', ['{delete}']);
+
+                            $browser->waitFor('[name="Xwinename"]', 60)->typeSlowly('Xwinename', $originName, 1)
+                                ->waitFor('.tt-suggestion', 60)
+                                ->pause(1000);
+
+                            $browser->elements('.tt-suggestion')[0]->click();
+
+                            $browser->waitFor('#find-tab-info', 10)->click('#find-tab-info');
+                            $browser->pause(1000);
+
+                            $scriptAlcoholValue = <<<JS
+                                var dtElements = document.querySelectorAll('.small.text-muted');
+                                var alcoholValue = '';
+
+                                for (var i = 0; i < dtElements.length; i++) {
+                                    if (dtElements[i].textContent === 'Alcohol ABV') {
+                                        var siblingDiv = dtElements[i].nextElementSibling.querySelector('.text-more-line.js-content');
+                                        if (siblingDiv) {
+                                            alcoholValue = siblingDiv.textContent;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                return alcoholValue;
+                            JS;
+
+                            $scriptSweetness = <<<JS
+                                var dtElements = document.querySelectorAll('.small.text-muted');
+                                var alcoholValue = '';
+
+                                for (var i = 0; i < dtElements.length; i++) {
+                                    if (dtElements[i].textContent === 'Sweetness') {
+                                        var siblingDiv = dtElements[i].nextElementSibling.querySelector('.text-more-line.js-content');
+                                        if (siblingDiv) {
+                                            alcoholValue = siblingDiv.textContent;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                return alcoholValue;
+                            JS;
+
+                            $scriptBlend = <<<JS
+                                var dtElements = document.querySelectorAll('.small.text-muted');
+                                var alcoholValue = '';
+
+                                for (var i = 0; i < dtElements.length; i++) {
+                                    if (dtElements[i].textContent === 'Blend') {
+                                        var siblingDiv = dtElements[i].nextElementSibling.querySelector('.text-more-line.js-content');
+                                        if (siblingDiv) {
+                                            alcoholValue = siblingDiv.textContent;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                return alcoholValue;
+                            JS;
+
+                            $scriptMaturation = <<<JS
+                                var dtElements = document.querySelectorAll('.small.text-muted');
+                                var alcoholValue = '';
+
+                                for (var i = 0; i < dtElements.length; i++) {
+                                    if (dtElements[i].textContent === 'Maturation') {
+                                        var siblingDiv = dtElements[i].nextElementSibling.querySelector('.text-more-line.js-content');
+                                        if (siblingDiv) {
+                                            alcoholValue = siblingDiv.textContent;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                return alcoholValue;
+                            JS;
+
+                            $scriptOakType = <<<JS
+                                var dtElements = document.querySelectorAll('.small.text-muted');
+                                var alcoholValue = '';
+
+                                for (var i = 0; i < dtElements.length; i++) {
+                                    if (dtElements[i].textContent === 'Oak Type') {
+                                        var siblingDiv = dtElements[i].nextElementSibling.querySelector('.text-more-line.js-content');
+                                        if (siblingDiv) {
+                                            alcoholValue = siblingDiv.textContent;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                return alcoholValue;
+                            JS;
+
+                            $scriptClosureType = <<<JS
+                                var dtElements = document.querySelectorAll('.small.text-muted');
+                                var alcoholValue = '';
+
+                                for (var i = 0; i < dtElements.length; i++) {
+                                    if (dtElements[i].textContent === 'Closure Type') {
+                                        var siblingDiv = dtElements[i].nextElementSibling.querySelector('.text-more-line.js-content');
+                                        if (siblingDiv) {
+                                            alcoholValue = siblingDiv.textContent;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                return alcoholValue;
+                            JS;
+
+                            $scriptVineyardNotes = <<<JS
+                                var dtElements = document.querySelectorAll('.small.text-muted');
+                                var alcoholValue = '';
+
+                                for (var i = 0; i < dtElements.length; i++) {
+                                    if (dtElements[i].textContent === 'Vineyard Notes') {
+                                        var siblingDiv = dtElements[i].nextElementSibling.querySelector('.text-truncate-more-line.js-content');
+                                        if (siblingDiv) {
+                                            alcoholValue = siblingDiv.textContent;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                return alcoholValue;
+                            JS;
+
+                            $scriptWinemaking = <<<JS
+                                var dtElements = document.querySelectorAll('.small.text-muted');
+                                var alcoholValue = '';
+
+                                for (var i = 0; i < dtElements.length; i++) {
+                                    if (dtElements[i].textContent === 'Winemaking') {
+                                        var siblingDiv = dtElements[i].nextElementSibling.querySelector('.text-truncate-more-line.js-content');
+                                        if (siblingDiv) {
+                                            alcoholValue = siblingDiv.textContent;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                return alcoholValue;
+                            JS;
+
+                            $scriptAgeing = <<<JS
+                                var dtElements = document.querySelectorAll('.small.text-muted');
+                                var alcoholValue = '';
+
+                                for (var i = 0; i < dtElements.length; i++) {
+                                    if (dtElements[i].textContent === 'Ageing') {
+                                        var siblingDiv = dtElements[i].nextElementSibling.querySelector('.text-truncate-more-line.js-content');
+                                        if (siblingDiv) {
+                                            alcoholValue = siblingDiv.textContent;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                return alcoholValue;
+                            JS;
+
+                            $wineName = $browser->waitFor('.product-details__container-right', 60)
+                                ->text('.product-details__container-right > li > h1');
+                            $region = $this->extractElementInfo($browser, '.product-details__region-name > span');
+                            $type = $this->extractElementInfo($browser, '.product-details__styles > span');
+                            $rating = $this->extractElementInfo($browser, '.ml-2A > span');
+                            $score = $this->extractElementInfo($browser, '.product-details__score > span');
+
+                            $content = $this->extractElementInfo($browser, '.product-details__description > p');
+                            $contentDetail = '';
+                            $contentDetailElm = $browser->elements('.js-show-hide.d-block.text-decoration-none.btn-link-primary.smaller.pl-1A.collapsed.cursor-pointer');
+
+                            if ($contentDetailElm) {
+                                $browser->click('.js-show-hide.d-block.text-decoration-none.btn-link-primary.smaller.pl-1A.collapsed.cursor-pointer');
+                                $contentDetail = $browser->text('.product-details__description .productDesc');
+                            }
+
+                            $alcoholABV = $browser->driver->executeScript($scriptAlcoholValue);
+                            $blend = $browser->driver->executeScript($scriptBlend);
+                            $maturation = $browser->driver->executeScript($scriptMaturation);
+                            $oakType = $browser->driver->executeScript($scriptOakType);
+                            $closureType = $browser->driver->executeScript($scriptClosureType);
+                            $vineyardNotes = $browser->driver->executeScript($scriptVineyardNotes);
+                            $wineMaking = $browser->driver->executeScript($scriptWinemaking);
+                            $ageing = $browser->driver->executeScript($scriptAgeing);
+                            $sweetness = $browser->driver->executeScript($scriptSweetness);
+
+                            Wine::updateNewAttr($id, $wineName, $region, $type, $rating, $score, $sweetness, $content,
+                                $contentDetail, $blend, $maturation, $oakType, $closureType, $vineyardNotes,
+                                $wineMaking, $ageing, $alcoholABV);
+
+                            $browser->waitFor('#find-tab-reviews', 10)->click('#find-tab-reviews');
+                            $browser->pause(500);
+
+                            $infoCardItems = $browser->elements('.text-primary.info-card__item-link-text.font-weight-bold');
+
+                            if (count($infoCardItems) > 0) {
+
+                                $moreCritics = $browser->elements('a[href="#moreCritics"]');
+
+                                if ($moreCritics) {
+                                    $browser->driver->executeScript("window.scrollTo(0, window.innerHeight );");
+                                    $browser->pause(1000);
+                                    $browser->click('a[href="#moreCritics"] .show-more');
+
+                                }
+
+                                foreach ($infoCardItems as $index => $infoCardItem) {
+                                    $user = $this->getTextFromElements($browser, '.text-primary.info-card__item-link-text.font-weight-bold', $index);
+                                    $ratingScore = $this->getTextFromElements($browser, '.btn.d-inline-flex.align-self-center.info-card__critic-score.mr-3', $index);
+                                    $ratingDate = $this->getTextFromElements($browser, '.text-muted.pr-3', $index);
+                                    $ratingContent = $this->getTextFromElements($browser, '.info-card__item .pt-2', $index);
+
+                                    $review = new Review();
+                                    $review->user = $user;
+                                    $review->content = $ratingContent;
+                                    $review->date = $ratingDate;
+                                    $review->score = $ratingScore;
+                                    $review->wine_id = $id;
+                                    $review->save();
+
+                                }
+
+
+                            }
+
+                            $browser->visit('https://www.wine-searcher.com/');
+
+                            $browser->pause(1200);
+
+                            dump("DONE: " . $id);
+
+
+                        }
+                    } catch (\Exception $e) {
+                        Log::error($e->getMessage());
+                        dump($e->getMessage());
+                        Wine::updateLog($id, $e->getMessage());
+                        continue;
+                    }
+                }
+            }
+
+        });
+    }
+
+    public function testExample(): void
+    {
+        $this->handleFirstMc();
+        $this->handleSecondtMc();
+    }
+
 }
