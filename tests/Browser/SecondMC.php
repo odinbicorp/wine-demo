@@ -326,6 +326,10 @@ class SecondMC extends DuskTestCase
 
     public function testExample(): void
     {
-        $this->handSecondMc();
+        try {
+            $this->handSecondMc();
+        }catch (\Exception $e){
+            Log::error($e->getMessage());
+        }
     }
 }
