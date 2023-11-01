@@ -75,6 +75,8 @@ class SecondMC extends DuskTestCase
                             $browser->driver->manage()->deleteAllCookies();
                         }
 
+                        $browser->waitFor('[name="Xwinename"]', 120);
+
                         $browser->keys('#Xwinename', ['{CONTROL}', 'a']);
 
                         $browser->keys('#Xwinename', ['{delete}']);
