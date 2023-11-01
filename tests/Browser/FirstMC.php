@@ -75,14 +75,14 @@ class FirstMC extends DuskTestCase
                             $browser->driver->manage()->deleteAllCookies();
                         }
 
-                        $browser->waitFor('[name="Xwinename"]', 120);
+                        $browser->waitFor('[name="Xwinename"]', 15);
 
                         $browser->keys('#Xwinename', ['{CONTROL}', 'a']);
 
                         $browser->keys('#Xwinename', ['{delete}']);
 
-                        $browser->waitFor('[name="Xwinename"]', 60)->typeSlowly('Xwinename', $originName, 1)
-                            ->waitFor('.tt-suggestion', 60)
+                        $browser->waitFor('[name="Xwinename"]', 15)->typeSlowly('Xwinename', $originName, 1)
+                            ->waitFor('.tt-suggestion', 15)
                             ->pause(1000);
 
                         $browser->elements('.tt-suggestion')[0]->click();
