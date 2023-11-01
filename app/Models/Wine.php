@@ -52,6 +52,12 @@ class Wine extends Model
             ->get();
     }
 
+    public static function getMcRestart()
+    {
+        return self::whereNull('new_name')
+            ->whereNotNull('logs')
+            ->get();
+    }
     public static function updateNewAttr($id, $name, $region, $type, $rating, $score, $sweetness, $content,
                                          $contentDetail, $blend, $maturation, $oakType, $closureType, $vineyardNote,
                                          $wineMaking, $ageing,$alcohol)
