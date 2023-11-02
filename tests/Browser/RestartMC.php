@@ -50,6 +50,7 @@ class RestartMC extends DuskTestCase
         $this->browse(function (Browser $browser) {
 
             while (true){
+
                 $wines = Wine::getMcRestart();
 
                 if ($wines->count() > 0) {
@@ -271,44 +272,50 @@ class RestartMC extends DuskTestCase
                             $ageing = $browser->driver->executeScript($scriptAgeing);
                             $sweetness = $browser->driver->executeScript($scriptSweetness);
 
-                            Wine::updateNewAttr($id, $wineName, $region, $type, $rating, $score, $sweetness, $content,
-                                $contentDetail, $blend, $maturation, $oakType, $closureType, $vineyardNotes,
-                                $wineMaking, $ageing, $alcoholABV);
+                            $wine = Wine::getFirstValue($id);
 
-                            $browser->waitFor('#find-tab-reviews', 10)->click('#find-tab-reviews');
-                            $browser->pause(500);
+                            if ($wine->new_name == null){
 
-                            $infoCardItems = $browser->elements('.text-primary.info-card__item-link-text.font-weight-bold');
+                                Wine::updateNewAttr($id, $wineName, $region, $type, $rating, $score, $sweetness, $content,
+                                    $contentDetail, $blend, $maturation, $oakType, $closureType, $vineyardNotes,
+                                    $wineMaking, $ageing, $alcoholABV);
 
-                            if (count($infoCardItems) > 0) {
+                                $browser->waitFor('#find-tab-reviews', 10)->click('#find-tab-reviews');
+                                $browser->pause(500);
 
-                                $moreCritics = $browser->elements('a[href="#moreCritics"]');
+                                $infoCardItems = $browser->elements('.text-primary.info-card__item-link-text.font-weight-bold');
 
-                                if ($moreCritics) {
-                                    $browser->driver->executeScript("window.scrollTo(0, window.innerHeight );");
-                                    $browser->pause(1000);
-                                    $browser->click('a[href="#moreCritics"] .show-more');
+                                if (count($infoCardItems) > 0) {
+
+                                    $moreCritics = $browser->elements('a[href="#moreCritics"]');
+
+                                    if ($moreCritics) {
+                                        $browser->driver->executeScript("window.scrollTo(0, window.innerHeight );");
+                                        $browser->pause(1000);
+                                        $browser->click('a[href="#moreCritics"] .show-more');
+
+                                    }
+
+                                    foreach ($infoCardItems as $index => $infoCardItem) {
+                                        $user = $this->getTextFromElements($browser, '.text-primary.info-card__item-link-text.font-weight-bold', $index);
+                                        $ratingScore = $this->getTextFromElements($browser, '.btn.d-inline-flex.align-self-center.info-card__critic-score.mr-3', $index);
+                                        $ratingDate = $this->getTextFromElements($browser, '.text-muted.pr-3', $index);
+                                        $ratingContent = $this->getTextFromElements($browser, '.info-card__item .pt-2', $index);
+
+                                        $review = new Review();
+                                        $review->user = $user;
+                                        $review->content = $ratingContent;
+                                        $review->date = $ratingDate;
+                                        $review->score = $ratingScore;
+                                        $review->wine_id = $id;
+                                        $review->save();
+
+                                    }
+
 
                                 }
-
-                                foreach ($infoCardItems as $index => $infoCardItem) {
-                                    $user = $this->getTextFromElements($browser, '.text-primary.info-card__item-link-text.font-weight-bold', $index);
-                                    $ratingScore = $this->getTextFromElements($browser, '.btn.d-inline-flex.align-self-center.info-card__critic-score.mr-3', $index);
-                                    $ratingDate = $this->getTextFromElements($browser, '.text-muted.pr-3', $index);
-                                    $ratingContent = $this->getTextFromElements($browser, '.info-card__item .pt-2', $index);
-
-                                    $review = new Review();
-                                    $review->user = $user;
-                                    $review->content = $ratingContent;
-                                    $review->date = $ratingDate;
-                                    $review->score = $ratingScore;
-                                    $review->wine_id = $id;
-                                    $review->save();
-
-                                }
-
-
                             }
+
 
                             $browser->visit('https://www.wine-searcher.com/');
 

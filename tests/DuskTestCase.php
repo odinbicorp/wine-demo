@@ -26,27 +26,7 @@ abstract class DuskTestCase extends BaseTestCase
         }
     }
 
-//    public function setUp(): void
-//    {
-//        parent::setUp();
-//
-//        Browser::macro('getSiblingTextByDtContent', function ($dtContent) {
-//            return $this->script([
-//                "var dtElements = document.querySelectorAll('.small.text-muted');",
-//                "var textValue = '';",
-//                "for (var i = 0; i < dtElements.length; i++) {",
-//                "if (dtElements[i].textContent === '{$dtContent}') {",
-//                "var siblingDiv = dtElements[i].nextElementSibling.querySelector('.text-more-line.js-content');",
-//                "if (siblingDiv) {",
-//                "textValue = siblingDiv.textContent;",
-//                "break;",
-//                "}",
-//                "}",
-//                "}",
-//                "return textValue;",
-//            ]);
-//        });
-//    }
+
     public function runBrowserWithinHeadlessMode() : RemoteWebDriver
     {
         if (!static::$browserHasFailed) {

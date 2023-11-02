@@ -37,6 +37,12 @@ class Wine extends Model
             ->get();
     }
 
+    public static function getWineByIsNullName($from,$to)
+    {
+        return self::whereNull('new_name')
+            ->whereBetween('id', [$from, $to])
+            ->get();
+    }
 
     public static function getEmptyNewNameMCSecond()
     {
@@ -58,6 +64,12 @@ class Wine extends Model
             ->whereNotNull('logs')
             ->get();
     }
+
+    public static function getFirstValue($id)
+    {
+        return self::where('id',$id)->first();
+    }
+
     public static function updateNewAttr($id, $name, $region, $type, $rating, $score, $sweetness, $content,
                                          $contentDetail, $blend, $maturation, $oakType, $closureType, $vineyardNote,
                                          $wineMaking, $ageing,$alcohol)
