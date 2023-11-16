@@ -20,7 +20,7 @@ class MC1 extends DuskTestCase
 
             try {
 
-                $wines = Wine::getWineByIsNullName(1001,1650);
+                $wines = Wine::getWineByIsNullName(1,16000);
 
                 ProcessPage::processHandle($browser,$wines);
 

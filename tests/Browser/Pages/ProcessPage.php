@@ -294,6 +294,7 @@ class ProcessPage
                         }
 
                         foreach ($infoCardItems as $index => $infoCardItem) {
+
                             $user = self::getTextFromElements($browser, '.text-primary.info-card__item-link-text.font-weight-bold', $index);
                             $ratingScore = self::getTextFromElements($browser, '.btn.d-inline-flex.align-self-center.info-card__critic-score.mr-3', $index);
                             $ratingDate = self::getTextFromElements($browser, '.text-muted.pr-3', $index);
@@ -318,9 +319,11 @@ class ProcessPage
                     dump("DONE: " . $id);
 
                 } catch (\Exception $e) {
+
                     Log::error($e->getMessage());
                     dump($e->getMessage());
                     Wine::updateLog($id, $e->getMessage());
+                    $browser->visit('https://www.wine-searcher.com/');
                     continue;
                 }
             }

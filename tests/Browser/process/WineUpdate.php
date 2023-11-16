@@ -5,10 +5,10 @@ namespace Tests\Browser\process;
 use App\Models\Wine;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Laravel\Dusk\Browser;
-use Tests\Browser\Pages\ProcessPage;
+use Tests\Browser\Pages\ProcessUpdatePage;
 use Tests\DuskTestCase;
 
-class MC12 extends DuskTestCase
+class WineUpdate extends DuskTestCase
 {
     /**
      * A Dusk test example.
@@ -16,17 +16,14 @@ class MC12 extends DuskTestCase
     public function testExample(): void
     {
         $this->browse(function (Browser $browser) {
-
             try {
 
-                $wines = Wine::getWineByIsNullName(12701,12875);
-
-                ProcessPage::processHandle($browser,$wines);
+                $wines = Wine::getWineBetween(5001,5001);
+                ProcessUpdatePage::processHandle($browser,$wines);
 
             }catch (\Exception $e){
                 dump($e->getMessage());
             }
-
         });
     }
 }

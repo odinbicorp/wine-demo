@@ -30,31 +30,17 @@ class Wine extends Model
         'logs'
     ];
 
-    public static function getEmptyNewName()
-    {
-        return self::whereNull('new_name')
-            ->whereBetween('id', [1, 5000])
-            ->get();
-    }
-
     public static function getWineByIsNullName($from,$to)
     {
         return self::whereNull('new_name')
+            ->where('logs','<>','No result found')
             ->whereBetween('id', [$from, $to])
             ->get();
     }
 
-    public static function getEmptyNewNameMCSecond()
+    public static function getWineBetween($from,$to)
     {
-        return self::whereNull('new_name')
-            ->whereBetween('id', [5001, 10000])
-            ->get();
-    }
-
-    public static function getEmptyNewNameMCThird()
-    {
-        return self::whereNull('new_name')
-            ->whereBetween('id', [10001, 16000])
+        return self::whereBetween('id', [$from, $to])
             ->get();
     }
 
