@@ -8,7 +8,7 @@ use Laravel\Dusk\Browser;
 use Tests\Browser\Pages\ProcessUpdatePage;
 use Tests\DuskTestCase;
 
-class WineUpdateMC1 extends DuskTestCase
+class WineUpdateMC7 extends DuskTestCase
 {
     public function testWine(): void
     {
@@ -17,7 +17,7 @@ class WineUpdateMC1 extends DuskTestCase
 
             try {
 
-                $wine = Wine::getWineBetweenWithLog(1,2000);
+                $wine = Wine::getWineBetweenWithLog(12001,15550);
                 ProcessUpdatePage::processHandle($browser,$wine);
 
             }catch (\Exception $e){
