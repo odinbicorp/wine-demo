@@ -27,7 +27,12 @@ class Wine extends Model
         'wine_making',
         'ageing',
         'alcohol',
-        'logs'
+        'logs',
+        'volume',
+        'review_total',
+        'rating_total',
+        'grape',
+        'price'
     ];
 
     public static function getWineByIsNullName($from,$to)
@@ -41,6 +46,13 @@ class Wine extends Model
     public static function getWineBetween($from,$to)
     {
         return self::whereBetween('id', [$from, $to])
+            ->get();
+    }
+
+    public static function getWineBetweenWithLog($from,$to)
+    {
+        return self::whereBetween('id', [$from, $to])
+            ->where('logs','<>','DONE')
             ->get();
     }
 
@@ -82,6 +94,12 @@ class Wine extends Model
 
         self::where('id', $id)->update($attributes);
     }
+
+    public static function wineUpdate(int $id, array $attributes)
+    {
+        self::find($id)->update($attributes);
+    }
+
 
     public static function updateLog($id, $logs)
     {

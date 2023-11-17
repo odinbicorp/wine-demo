@@ -6,6 +6,7 @@ use App\Models\Review;
 use App\Models\Wine;
 use Illuminate\Support\Facades\Log;
 use Laravel\Dusk\Browser;
+use Tests\Browser\Helpers\WineHelper;
 
 
 class ProcessPage
@@ -262,6 +263,16 @@ class ProcessPage
                         $browser->click('.js-show-hide.d-block.text-decoration-none.btn-link-primary.smaller.pl-1A.collapsed.cursor-pointer');
                         $contentDetail = $browser->text('.product-details__description .productDesc');
                     }
+
+//                    $result = WineHelper::getWineProfile($browser);
+//                    $alcohol = $result['alcohol'];
+//                    $wineName = $browser->waitFor('.product-details__container-right', 60)
+//                        ->text('.product-details__container-right > li > h1');
+//                    $region =self::extractElementInfo($browser, '.product-details__region-name > span');
+//                    $type = self::extractElementInfo($browser, '.product-details__styles > span');
+//                    $rating = self::extractElementInfo($browser, '.ml-2A > span');
+//                    $score = self::extractElementInfo($browser, '.product-details__score > span');
+//                    $content = self::extractElementInfo($browser, '.product-details__description > p');
 
                     $alcoholABV = $browser->driver->executeScript($scriptAlcoholValue);
                     $blend = $browser->driver->executeScript($scriptBlend);

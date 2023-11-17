@@ -9,5 +9,6 @@ class Review extends Model
 {
     use HasFactory;
 
+    protected $table = 'review_crawls';
     protected $fillable = ['user','content','date','score','wine_id'];
 }

@@ -2,6 +2,8 @@
 
 namespace Tests\Browser\Helpers;
 
+use Facebook\WebDriver\WebDriverBy;
+
 class WineHelper
 {
     public static function getWineProfile($browser)
@@ -51,38 +53,46 @@ class WineHelper
 
     }
 
-    public static function getWineReview($browser)
+    public  static function extractElementInfo($browser, $selector)
     {
-        $script = <<<JS
-                        function getSiblingContentByDtContent(siblingClass,index) {
-                                var dtElements = document.querySelectorAll('.text-primary.info-card__item-link-text.font-weight-bold');
-                                var contentValue = '';
 
-                                for (var i = 0; i < dtElements.length; i++) {
-                                    var parentElement = dtElements[i].closest('.info-card__item');
-                                    var siblingDiv = parentElement.querySelector(siblingClass);
+        $elmText = '';
 
-                                    if (siblingDivs.length > index && siblingDivs[index] !== undefined) {
-                                        contentValue = siblingDivs[index].textContent;
+        if (count($browser->elements($selector)) > 0) {
+            $elmText = $browser->text($selector);
+        }
 
-                                    }
-                                }
+        return $elmText;
+    }
 
-                                return contentValue;
-                            }
+    public static function getTextFromElements($browser, $selector, $index)
+    {
+        $elements = $browser->elements($selector);
 
-                            var ratingContent = getSiblingContentByDtContent('.pt-2',1);
-                            var ratingDate = getSiblingContentByDtContent('.text-muted.pr-3',0);
+        if (count($elements) > $index) {
+            $element = $elements[$index];
+            return $element->getText();
+        }
 
-                            return {
-                                ratingContent: ratingContent,
-                                ratingDate: ratingDate
-                            };
+        return '';
+    }
 
-                    JS;
+    public static function getTextFromCssSelector($selector,$cssSelector)
+    {
+        $result = '';
 
-        return $browser->driver->executeScript($script);
+        try {
+            $findSelector = optional($selector->findElement(WebDriverBy::cssSelector($cssSelector)));
 
+            if ($findSelector) {
+                $result = $findSelector->getText();
+            }
+
+        }catch (\Exception $e){
+            dump($e->getMessage());
+        }
+
+        return $result;
     }
 
 
