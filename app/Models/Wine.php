@@ -32,7 +32,8 @@ class Wine extends Model
         'review_total',
         'rating_total',
         'grape',
-        'price'
+        'price',
+        'currency'
     ];
 
     public static function getWineByIsNullName($from,$to)

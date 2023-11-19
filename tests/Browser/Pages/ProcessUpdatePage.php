@@ -17,7 +17,7 @@ class ProcessUpdatePage
 
             foreach ($wines as $index => $wine) {
 
-                Wine::updateLog($wine->id,null);
+                //Wine::updateLog($wine->id,null);
 
                 try {
 
@@ -53,6 +53,34 @@ class ProcessUpdatePage
 
                     //$browser->waitFor('#find-tab-info', 5);
                     $browser->pause(1000);
+
+                    $currency = '';
+                    $ratingTotal = WineHelper::extractElementInfo($browser, '.ml-2A > span.font-light-bold:nth-child(2)');
+                    $reviewTotal = WineHelper::extractElementInfo($browser, '.product-details__score  .font-light-bold');
+                    $price = WineHelper::extractElementInfo($browser, '.price.text-nowrap  .font-light-bold');
+                    $volumn = WineHelper::extractElementInfo($browser, '.mb-2A.pl-0.card.product-details__avg-price-global .p-2 .small');
+
+                    dump("Rating {$ratingTotal}");
+                    dump("Review {$reviewTotal}");
+                    dump("Price {$price}");
+                    dump("Volumn {$volumn}");
+
+                    if ($volumn){
+                        $volumn = str_replace("/","",$volumn);
+                        $volumn = str_replace(" ","",$volumn);
+                    }
+
+                    if ($price){
+
+                        $price = str_replace(",","",$price);
+
+                        if ($browser->assertSee('₫', '.price.text-nowrap')) {
+                            $currency = 'VND';
+                        }else{
+                            $currency = 'USD';
+                        }
+                    }
+
                     $findTabInfo = $browser->elements('#find-tab-info');
 
                     if (!$findTabInfo){
@@ -67,23 +95,15 @@ class ProcessUpdatePage
                     $browser->click('#find-tab-info');
                     $browser->pause(500);
 
-                    $ratingTotal = WineHelper::extractElementInfo($browser, '.ml-2A > span.font-light-bold:nth-child(2)');
-                    $reviewTotal = WineHelper::extractElementInfo($browser, '.product-details__score  .font-light-bold');
-                    $price = WineHelper::extractElementInfo($browser, '.price.text-nowrap  .font-light-bold');
-                    $volumn = WineHelper::extractElementInfo($browser, '.mb-2A.pl-0.card.product-details__avg-price-global .p-2 .small');
                     $grape = WineHelper::extractElementInfo($browser, '.font-light-bold.text-primary.info-card__item-link-text.text-underline');
-
-                    if ($volumn){
-                        $volumn = str_replace("/","",$volumn);
-                        $volumn = str_replace(" ","",$volumn);
-                    }
 
                     $fillableAttributes = [
                         'volume' => $volumn,
                         'review_total' => $reviewTotal,
                         'rating_total' => $ratingTotal,
                         'grape' => $grape,
-                        'price' => $price
+                        'price' => $price,
+                        'currency' => $currency
                     ];
 
                     Wine::wineUpdate($id,$fillableAttributes);

@@ -56,7 +56,7 @@ class WineHelper
     public  static function extractElementInfo($browser, $selector)
     {
 
-        $elmText = '';
+        $elmText = null;
 
         if (count($browser->elements($selector)) > 0) {
             $elmText = $browser->text($selector);
