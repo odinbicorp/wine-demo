@@ -17,7 +17,7 @@ class ProcessUpdatePage
 
             foreach ($wines as $index => $wine) {
 
-                //Wine::updateLog($wine->id,null);
+                Wine::updateLog($wine->id,null);
 
                 try {
 
