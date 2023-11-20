@@ -33,7 +33,8 @@ class Wine extends Model
         'rating_total',
         'grape',
         'price',
-        'currency'
+        'currency',
+        'price_logs'
     ];
 
     public static function getWineByIsNullName($from,$to)
@@ -54,6 +55,25 @@ class Wine extends Model
     {
         return self::whereBetween('id', [$from, $to])
             ->where('logs','<>','DONE')
+            ->get();
+    }
+
+    public static function getWineWithLog()
+    {
+        return self::where('logs','<>','DONE')
+            ->get();
+    }
+
+    public static function getWineBetweenWithPriceLog($from,$to)
+    {
+        return self::whereBetween('id', [$from, $to])
+            ->where('price_logs','<>','DONE')
+            ->get();
+    }
+
+    public static function getWineWithPriceLog()
+    {
+        return self::where('price_logs','<>','DONE')
             ->get();
     }
 
@@ -106,6 +126,15 @@ class Wine extends Model
     {
         $attributes = [
             'logs' => $logs
+        ];
+
+        self::where('id', $id)->update($attributes);
+    }
+
+    public static function updatePriceLog($id, $logs)
+    {
+        $attributes = [
+            'price_logs' => $logs
         ];
 
         self::where('id', $id)->update($attributes);

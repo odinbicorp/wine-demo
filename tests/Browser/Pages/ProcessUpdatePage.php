@@ -5,6 +5,7 @@ namespace Tests\Browser\Pages;
 use App\Models\Review;
 use App\Models\Wine;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Tests\Browser\Helpers\WineHelper;
 
 class ProcessUpdatePage
@@ -54,16 +55,11 @@ class ProcessUpdatePage
                     //$browser->waitFor('#find-tab-info', 5);
                     $browser->pause(1000);
 
-                    $currency = '';
                     $ratingTotal = WineHelper::extractElementInfo($browser, '.ml-2A > span.font-light-bold:nth-child(2)');
                     $reviewTotal = WineHelper::extractElementInfo($browser, '.product-details__score  .font-light-bold');
                     $price = WineHelper::extractElementInfo($browser, '.price.text-nowrap  .font-light-bold');
                     $volumn = WineHelper::extractElementInfo($browser, '.mb-2A.pl-0.card.product-details__avg-price-global .p-2 .small');
-
-                    dump("Rating {$ratingTotal}");
-                    dump("Review {$reviewTotal}");
-                    dump("Price {$price}");
-                    dump("Volumn {$volumn}");
+                    $currency = WineHelper::extractElementInfo($browser, '.price.text-nowrap');
 
                     if ($volumn){
                         $volumn = str_replace("/","",$volumn);
@@ -73,10 +69,11 @@ class ProcessUpdatePage
                     if ($price){
 
                         $price = str_replace(",","",$price);
+                        $containsChar = Str::contains($currency, '₫');
 
-                        if ($browser->assertSee('₫', '.price.text-nowrap')) {
+                        if ($containsChar) {
                             $currency = 'VND';
-                        }else{
+                        } else {
                             $currency = 'USD';
                         }
                     }

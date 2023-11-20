@@ -7,6 +7,8 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Laravel\Dusk\Browser;
 use Tests\Browser\Pages\ProcessUpdatePage;
 use Tests\DuskTestCase;
+use Illuminate\Support\Facades\Http;
+use Spatie\Async\Pool;
 
 class WineUpdate extends DuskTestCase
 {
@@ -37,21 +39,41 @@ class WineUpdate extends DuskTestCase
             }
         });
     }
+
     public function testWine(): void
     {
+        try {
+            $wine = Wine::getWineBetweenWithLog(1, 1000);
+            $wine2 = Wine::getWineBetweenWithLog(1001, 2000);
 
-        $this->browse(function (Browser $browser) {
+            // Sử dụng spatie/async để thực hiện đồng thời
+            $this->runAsync(function () use ($wine, $wine2) {
+                $this->asyncProcessHandle($wine);
+                $this->asyncProcessHandle($wine2);
+            });
 
-            try {
+        } catch (\Exception $e) {
+            dump($e->getMessage());
+        }
+    }
 
-                $wine = Wine::getWineBetweenWithLog(20,2000);
-                ProcessUpdatePage::processHandle($browser,$wine);
-
-            }catch (\Exception $e){
-                dump($e->getMessage());
-            }
+    private function asyncProcessHandle($wine)
+    {
+        $this->runAsync(function () use ($wine) {
+            $browser = new Browser();
+            ProcessUpdatePage::processHandle($browser, $wine);
         });
     }
 
+    private function runAsync(callable $callback)
+    {
+        $pool = Pool::create()
+            ->concurrent(2) // Set the number of parallel executions
+            ->timeout(30) // Set a timeout if needed
+            ->output(new ParallelProgressOutput());
+
+        $pool->add($callback);
+        $pool->wait();
+    }
 
 }
