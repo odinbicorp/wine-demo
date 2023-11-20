@@ -33,10 +33,10 @@ class ProcessUpdatePage
                     //dump($cokieName);
 
                     if ($captChar) {
-                        dump("Ok");
-                        $browser->visit('https://www.wine-searcher.com/');
-                        //$browser->refresh();
+                        dump("Captcha");
                         $browser->driver->manage()->deleteAllCookies();
+                        $browser->visit('https://www.wine-searcher.com/');
+                        dump("Đã giải Captcha");
                     }
 
                     $browser->waitFor('[name="Xwinename"]', 15);
@@ -119,10 +119,21 @@ class ProcessUpdatePage
                             $moreCritics = $browser->elements('a[href="#moreCritics"]');
 
                             if ($moreCritics) {
-                                $browser->driver->executeScript("window.scrollTo(0, window.innerHeight );");
-                                $browser->pause(1000);
-                                $browser->click('a[href="#moreCritics"] .show-more');
 
+                                $showMore = $browser->elements('.card.info-card.info_card__critic.rounded-0.corner-sm a[href="#moreCritics"] .show-more');
+
+                                while(!$showMore){
+                                    $browser->script("window.scrollTo(0, window.innerHeight / 2);");
+                                }
+
+                                $browser->script("document.querySelector('.card.info-card.info_card__critic.rounded-0.corner-sm a[href=\"#moreCritics\"] .show-more').scrollIntoView();");
+                                //$browser->script("window.scrollTo(0, window.innerHeight);");
+                                //$browser->script("window.scrollTo(0, window.scrollY + 1000);");
+                                $browser->script("document.querySelector('.card.info-card.info_card__critic.rounded-0.corner-sm a[href=\"#moreCritics\"] .show-more').scrollIntoView();");
+                                $browser->pause(3000);
+                                dump($browser->text('.card.info-card.info_card__critic.rounded-0.corner-sm a[href="#moreCritics"] .show-more'));
+                                $browser->click('.card.info-card.info_card__critic.rounded-0.corner-sm a[href="#moreCritics"] .show-more');
+                                $browser->pause(30000);
                             }
 
                             foreach ($infoCardItems as $index => $infoCardItem) {
@@ -153,7 +164,7 @@ class ProcessUpdatePage
 
                     Log::error($e->getMessage());
                     dump($e->getMessage());
-                    //$browser->pause(60000);
+                    $browser->pause(60000);
                     Wine::updateLog($id, $e->getMessage());
                     $browser->visit('https://www.wine-searcher.com/');
                     continue;

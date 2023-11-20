@@ -15,23 +15,26 @@ class Update extends DuskTestCase
      */
     public function testExample(): void
     {
+        $wines = Wine::withoutReviews()->get();
+
+        dd($wines);
+
         $this->browse(function (Browser $browser) {
 
-            while (true){
+           // $wine = Wine::getWineWithLog();
+            $wines = Wine::withoutReviews()->get();
 
-                $wine = Wine::getWineWithLog();
 
-                if ($wine->count() > 0){
-                    try {
 
-                        ProcessUpdatePage::processHandle($browser,$wine);
+            if ($wines->count() > 0){
+                try {
 
-                    }catch (\Exception $e){
-                        dump($e->getMessage());
-                    }
+                    ProcessUpdatePage::processHandle($browser,$wine);
+
+                }catch (\Exception $e){
+                    dump($e->getMessage());
                 }
             }
-
 
         });
     }

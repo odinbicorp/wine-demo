@@ -89,6 +89,13 @@ class Wine extends Model
         return self::where('id',$id)->first();
     }
 
+    public function scopeWithoutReviews($query)
+    {
+        return $query->whereNotIn('id', function ($subquery) {
+            $subquery->select('wine_id')->from('review_crawls');
+        });
+    }
+
     public static function updateNewAttr($id, $name, $region, $type, $rating, $score, $sweetness, $content,
                                          $contentDetail, $blend, $maturation, $oakType, $closureType, $vineyardNote,
                                          $wineMaking, $ageing,$alcohol)
