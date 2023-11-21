@@ -30,9 +30,9 @@ class ReviewTranslation
                     if ($contentElm){
                         $browser->clear('textarea[jsname="BJE2fc"]')->type('textarea[jsname="BJE2fc"]', $content);
                         $browser->pause(1000);
-
-                        $result = $browser->waitFor('span[jsname="W297wb"]')
-                            ->text('span[jsname="W297wb"]');
+                       do{
+                           $result = $browser->waitFor('span[jsname="W297wb"]')->text('span[jsname="W297wb"]');
+                       }while(Str::length($result) == 0);
 
                         Review::update([
                             'content_vi'=>$result,
