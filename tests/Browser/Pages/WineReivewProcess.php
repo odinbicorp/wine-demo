@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Tests\Browser\Helpers\WineHelper;
 
-class ProcessUpdatePage
+class WineReivewProcess
 {
     public static function processHandle($browser,$wines)
     {
@@ -24,18 +24,21 @@ class ProcessUpdatePage
 
                     $id = $wine->id;
                     $originName = $wine->origin_name;
-
-                    dump("Origin name: " . $originName);
-
                     $captChar = $browser->elements('.px-captcha-message');
 
                     //$cokieName = $browser->driver->manage()->getCookies();
 
                     if ($captChar) {
-                        dump("Captcha");
+
                         $browser->driver->manage()->deleteAllCookies();
                         $browser->visit('https://www.wine-searcher.com/');
                         dump("Đã giải Captcha");
+                    }
+
+                    $cokieELm = $browser->elements('.btn.btn-primary.smaller.float-right.cookie-accept');
+
+                    if ($cokieELm){
+                        $cokieELm[0]->click();
                     }
 
                     $browser->waitFor('[name="Xwinename"]', 15);
@@ -54,29 +57,6 @@ class ProcessUpdatePage
                     //$browser->waitFor('#find-tab-info', 5);
                     $browser->pause(1000);
 
-                    $ratingTotal = WineHelper::extractElementInfo($browser, '.ml-2A > span.font-light-bold:nth-child(2)');
-                    $reviewTotal = WineHelper::extractElementInfo($browser, '.product-details__score  .font-light-bold');
-                    $price = WineHelper::extractElementInfo($browser, '.price.text-nowrap  .font-light-bold');
-                    $volumn = WineHelper::extractElementInfo($browser, '.mb-2A.pl-0.card.product-details__avg-price-global .p-2 .small');
-                    $currency = WineHelper::extractElementInfo($browser, '.price.text-nowrap');
-
-                    if ($volumn){
-                        $volumn = str_replace("/","",$volumn);
-                        $volumn = str_replace(" ","",$volumn);
-                    }
-
-                    if ($price){
-
-                        $price = str_replace(",","",$price);
-                        $containsChar = Str::contains($currency, '₫');
-
-                        if ($containsChar) {
-                            $currency = 'VND';
-                        } else {
-                            $currency = 'USD';
-                        }
-                    }
-
                     $findTabInfo = $browser->elements('#find-tab-info');
 
                     if (!$findTabInfo){
@@ -84,25 +64,8 @@ class ProcessUpdatePage
                         Wine::updateLog($id,"No result found");
                         $browser->visit('https://www.wine-searcher.com/');
                         $browser->pause(1200);
-
                         continue;
                     }
-
-                    $browser->click('#find-tab-info');
-                    $browser->pause(500);
-
-                    $grape = WineHelper::extractElementInfo($browser, '.font-light-bold.text-primary.info-card__item-link-text.text-underline');
-
-                    $fillableAttributes = [
-                        'volume' => $volumn,
-                        'review_total' => $reviewTotal,
-                        'rating_total' => $ratingTotal,
-                        'grape' => $grape,
-                        'price' => $price,
-                        'currency' => $currency
-                    ];
-
-                    Wine::wineUpdate($id,$fillableAttributes);
 
                     $review = Review::where('wine_id',$id)->first();
 
@@ -118,22 +81,17 @@ class ProcessUpdatePage
                             $moreCritics = $browser->elements('a[href="#moreCritics"]');
 
                             if ($moreCritics) {
-
-                                $showMore = $browser->elements('.card.info-card.info_card__critic.rounded-0.corner-sm a[href="#moreCritics"] .show-more');
-
-                                while(!$showMore){
-                                    $browser->script("window.scrollTo(0, window.innerHeight / 2);");
-                                }
-
-
-                                //$browser->script("window.scrollTo(0, window.innerHeight);");
-                                //$browser->script("window.scrollTo(0, window.scrollY + 1000);");
+                                $browser->script("window.scrollTo(0, window.innerHeight / 0.75);");
                                 //$browser->script("document.querySelector('.card.info-card.info_card__critic
                                 //.rounded-0.corner-sm a[href=\"#moreCritics\"] .show-more').scrollIntoView();");
                                 $browser->pause(1000);
+                                try {
+                                    $browser->click('.card.info-card.info_card__critic.rounded-0.corner-sm a[href="#moreCritics"] .show-more');
+                                }catch (\Exception $e){
+                                    $browser->script("window.scrollTo(0, window.innerHeight / 0.75);");
+                                    $browser->click('.card.info-card.info_card__critic.rounded-0.corner-sm a[href="#moreCritics"] .show-more');
+                                }
 
-                                $browser->click('.card.info-card.info_card__critic.rounded-0.corner-sm a[href="#moreCritics"] .show-more');
-                                $browser->pause(30000);
                             }
 
                             foreach ($infoCardItems as $index => $infoCardItem) {
@@ -156,8 +114,8 @@ class ProcessUpdatePage
                         }
                     }
 
-                    $browser->visit('https://www.wine-searcher.com/');
                     $browser->driver->manage()->deleteAllCookies();
+                    $browser->visit('https://www.wine-searcher.com/');
 
                     Wine::updateLog($id, "DONE");
                     $browser->pause(1200);

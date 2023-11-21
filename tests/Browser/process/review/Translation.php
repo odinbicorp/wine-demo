@@ -1,14 +1,14 @@
 <?php
 
-namespace Tests\Browser\process\wine;
+namespace Tests\Browser\process\review;
 
-use App\Models\Wine;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Laravel\Dusk\Browser;
-use Tests\Browser\Pages\ProcessUpdatePage;
 use Tests\DuskTestCase;
+use Illuminate\Support\Facades\Log;
+use App\Models\Review;
+use Tests\Browser\Pages\ReviewTranslation;
 
-class Update extends DuskTestCase
+class Translation extends DuskTestCase
 {
     /**
      * A Dusk test example.
@@ -17,18 +17,16 @@ class Update extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
 
-            $wines = Wine::getWineWithLog();
+            $reviews = Review::unfinishedBetween(1,9);
 
-            if ($wines->count() > 0){
-
+            if ($reviews->count() > 0){
                 try {
-                    ProcessUpdatePage::processHandle($browser,$wines);
+                    ReviewTranslation::processHandle($browser,$reviews);
 
                 }catch (\Exception $e){
                     dump($e->getMessage());
                 }
             }
-
         });
     }
 }

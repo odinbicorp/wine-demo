@@ -45,45 +45,6 @@ class Wine extends Model
             ->get();
     }
 
-    public static function getWineBetween($from,$to)
-    {
-        return self::whereBetween('id', [$from, $to])
-            ->get();
-    }
-
-    public static function getWineBetweenWithLog($from,$to)
-    {
-        return self::whereBetween('id', [$from, $to])
-            ->where('logs','<>','DONE')
-            ->get();
-    }
-
-    public static function getWineWithLog()
-    {
-        return self::where('logs','<>','DONE')
-            ->get();
-    }
-
-    public static function getWineBetweenWithPriceLog($from,$to)
-    {
-        return self::whereBetween('id', [$from, $to])
-            ->where('price_logs','<>','DONE')
-            ->get();
-    }
-
-    public static function getWineWithPriceLog()
-    {
-        return self::where('price_logs','<>','DONE')
-            ->get();
-    }
-
-    public static function getMcRestart()
-    {
-        return self::whereNull('new_name')
-            ->whereNotNull('logs')
-            ->get();
-    }
-
     public static function getFirstValue($id)
     {
         return self::where('id',$id)->first();
@@ -94,6 +55,18 @@ class Wine extends Model
         return $query->whereNotIn('id', function ($subquery) {
             $subquery->select('wine_id')->from('review_crawls');
         });
+    }
+
+    public function scopeWithLogUnfinished($query)
+    {
+        return $query->where('logs','<>','DONE')->get();
+    }
+
+    public function scopeUnfinishedBetween($query,$from,$to)
+    {
+        return $query->whereNotIn('id', function ($subquery) {
+                $subquery->select('wine_id')->from('review_crawls');
+            })->whereBetween('id',[$from,$to])->get();
     }
 
     public static function updateNewAttr($id, $name, $region, $type, $rating, $score, $sweetness, $content,
@@ -127,7 +100,6 @@ class Wine extends Model
     {
         self::find($id)->update($attributes);
     }
-
 
     public static function updateLog($id, $logs)
     {

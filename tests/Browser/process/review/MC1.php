@@ -1,14 +1,13 @@
 <?php
 
-namespace Tests\Browser\process\wine;
+namespace Tests\Browser\process\review;
 
 use App\Models\Wine;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Laravel\Dusk\Browser;
-use Tests\Browser\Pages\ProcessUpdatePage;
+use Tests\Browser\Pages\WineReivewProcess;
 use Tests\DuskTestCase;
 
-class Update extends DuskTestCase
+class MC1 extends DuskTestCase
 {
     /**
      * A Dusk test example.
@@ -17,12 +16,12 @@ class Update extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
 
-            $wines = Wine::getWineWithLog();
+            $wines = Wine::unfinishedBetween(1,2000);
 
             if ($wines->count() > 0){
 
                 try {
-                    ProcessUpdatePage::processHandle($browser,$wines);
+                    WineReivewProcess::processHandle($browser,$wines);
 
                 }catch (\Exception $e){
                     dump($e->getMessage());
