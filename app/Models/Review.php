@@ -37,5 +37,10 @@ class Review extends Model
         self::where('id', $id)->update($attributes);
     }
 
+    public static function reviewUpdate(int $id, array $attributes)
+    {
+        self::find($id)->update($attributes);
+    }
+
 
 }

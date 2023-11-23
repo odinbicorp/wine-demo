@@ -20,7 +20,6 @@ class ReviewTranslation
 
                 $id = $review->id;
                 $content= $review->content;
-                dump($content);
                 Review::updateLog($id,1);
 
                 try {
@@ -28,18 +27,25 @@ class ReviewTranslation
                     $contentElm = $browser->elements('textarea[jsname="BJE2fc"]');
 
                     if ($contentElm){
+
                         $browser->clear('textarea[jsname="BJE2fc"]')->type('textarea[jsname="BJE2fc"]', $content);
+                        $browser->pause(1500);
+                        $result = '';
+
+                        while (Str::length($result) == 0){
+                            $result = $browser->waitFor('span[jsname="W297wb"]')->text('span[jsname="W297wb"]');
+                        }
+
+                        $fillableAttributes = [
+                            'content_vi' => $result,
+                            'logs' => 'DONE',
+                        ];
+
+                        Review::reviewUpdate($id,$fillableAttributes);
                         $browser->pause(1000);
-                       do{
-                           $result = $browser->waitFor('span[jsname="W297wb"]')->text('span[jsname="W297wb"]');
-                       }while(Str::length($result) == 0);
+                        $browser->click('.VfPpkd-Bz112c-LgbsSe.VfPpkd-Bz112c-LgbsSe-OWXEXe-e5LLRc-SxQuSe.yHy1rc.eT1oJ.mN1ivc.ZihNHd.GA2I6e');
+                        $browser->pause(1000);
 
-                        Review::update([
-                            'content_vi'=>$result,
-                            'logs'=>'DONE'
-                        ]);
-
-                        dump($result);
                     }else{
                         Review::updateLog($id, "Failled");
                     }

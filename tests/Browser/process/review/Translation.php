@@ -17,7 +17,7 @@ class Translation extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
 
-            $reviews = Review::unfinishedBetween(1,9);
+            $reviews = Review::unfinishedBetween(16,1000);
 
             if ($reviews->count() > 0){
                 try {
